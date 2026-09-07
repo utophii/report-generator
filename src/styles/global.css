@@ -1,0 +1,24 @@
+:root { --border:#ddd; --accent:#2E7DD1; }
+* { box-sizing: border-box; }
+body { margin: 0; font-family: 'Segoe UI', Arial, sans-serif; }
+.page { padding: 16px 24px; }
+.topbar { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+.spacer { flex: 1; }
+.primary { background: var(--accent); color: white; border: none; padding: 6px 14px; border-radius: 4px; cursor: pointer; }
+button { cursor: pointer; }
+.report-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); gap: 12px; }
+.report-card { border: 1px solid var(--border); border-radius: 6px; padding: 12px; cursor: pointer; }
+.section-card { border: 1px solid var(--border); border-radius: 6px; padding: 10px; margin-bottom: 12px; }
+.section-header { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.section-title-input { flex: 1; font-weight: bold; }
+.field-row { display: flex; gap: 8px; border-top: 1px dashed var(--border); padding: 8px 0; }
+.field-value { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.35); display:flex; align-items:center; justify-content:center; }
+.modal { background: white; padding: 20px; border-radius: 8px; min-width: 320px; max-height: 80vh; overflow: auto; }
+.modal.wide { min-width: 640px; }
+table.preview-table, table { border-collapse: collapse; }
+table.preview-table th, table.preview-table td, .table-editor td, .table-editor th { border: 1px solid var(--border); padding: 4px 6px; }
+.preview-cover { text-align: center; padding: 60px 0; }
+.error-banner { background: #ffe4e4; color: #900; padding: 6px 10px; border-radius: 4px; }
+.hint { color: #777; font-size: 12px; }
+.notes-panel { border: 1px solid var(--border); padding: 8px; border-radius: 6px; margin-top: 6px; }
