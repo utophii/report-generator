@@ -6,6 +6,7 @@ import TemplateEditorPage from './pages/TemplateEditorPage';
 import ReportEditorPage from './pages/ReportEditorPage';
 import PreviewPage from './pages/PreviewPage';
 import SettingsPage from './pages/SettingsPage';
+import ErrorBoundary from './components/ErrorBoundary';
 
 export type Route =
   | { name: 'home' }
@@ -27,12 +28,14 @@ export default function App() {
   const ctx = { route, navigate: setRoute };
   return (
     <RouteContext.Provider value={ctx}>
-      {route.name === 'home' && <HomePage />}
-      {route.name === 'templates' && <TemplatesPage />}
-      {route.name === 'templateEditor' && <TemplateEditorPage id={route.id} />}
-      {route.name === 'reportEditor' && <ReportEditorPage id={route.id} />}
-      {route.name === 'preview' && <PreviewPage id={route.id} />}
-      {route.name === 'settings' && <SettingsPage />}
+      <ErrorBoundary onReset={() => setRoute({ name: 'home' })} key={JSON.stringify(route)}>
+        {route.name === 'home' && <HomePage />}
+        {route.name === 'templates' && <TemplatesPage />}
+        {route.name === 'templateEditor' && <TemplateEditorPage id={route.id} />}
+        {route.name === 'reportEditor' && <ReportEditorPage id={route.id} />}
+        {route.name === 'preview' && <PreviewPage id={route.id} />}
+        {route.name === 'settings' && <SettingsPage />}
+      </ErrorBoundary>
     </RouteContext.Provider>
   );
 }

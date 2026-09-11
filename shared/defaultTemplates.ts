@@ -1,11 +1,26 @@
 import { v4 as uuid } from 'uuid';
-import { Section, Template, Language } from './types';
+import { Section, Field, FieldType, Template, Language } from './types';
 
-function field(label: string, type: Section['fields'][number]['type'], required = false): Section['fields'][number] {
-  return { id: uuid(), label, type, required, order: 0, value: type === 'list' ? [] : type === 'number' ? null : '' } as any;
+function defaultValueFor(type: FieldType): Field['value'] {
+  switch (type) {
+    case 'list': return [];
+    case 'number': return null;
+    case 'table': return { columns: [], rows: [] };
+    case 'chart': return {
+      sourceFieldId: null, chartType: 'bar', title: '',
+      categoryColumn: null, valueColumns: [], showLegend: true
+    };
+    case 'image': return null;
+    case 'select': return '';
+    default: return '';
+  }
 }
 
-function section(title: string, level: 1 | 2 | 3, order: number, fields: Section['fields']): Section {
+function field(label: string, type: FieldType, required = false): Field {
+  return { id: uuid(), label, type, required, order: 0, value: defaultValueFor(type) };
+}
+
+function section(title: string, level: 1 | 2 | 3, order: number, fields: Field[]): Section {
   return {
     id: uuid(), title, level, required: false, order, showInToc: true,
     fields: fields.map((f, i) => ({ ...f, order: i }))

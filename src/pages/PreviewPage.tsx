@@ -37,6 +37,7 @@ export default function PreviewPage({ id }: { id: string }) {
     <div className="page">
       <header className="topbar">
         <button onClick={() => navigate({ name: 'reportEditor', id: report.id })}>{t('backToEdit', lang)}</button>
+        <button onClick={() => navigate({ name: 'home' })}>Главная</button>
         <div className="spacer" />
         <span>{t('theme', lang)}:</span>
         {(Object.keys(THEMES) as ThemeId[]).map(id => (

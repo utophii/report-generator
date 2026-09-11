@@ -5,7 +5,9 @@ import ImportDialog from './ImportDialog';
 
 export default function TableEditor({ value, onChange }: { value: TableValue; onChange: (v: TableValue) => void }) {
   const [importOpen, setImportOpen] = useState(false);
-  const v = value ?? { columns: [], rows: [] };
+  const v = (value && typeof value === 'object' && Array.isArray((value as any).columns))
+    ? value
+    : { columns: [], rows: [] };
 
   function addColumn() {
     const key = `col_${uuid().slice(0, 6)}`;

@@ -33,6 +33,7 @@ export default function TemplateEditorPage({ id }: { id: string | null }) {
     <div className="page">
       <header className="topbar">
         <button onClick={() => navigate({ name: 'templates' })}>←</button>
+        <button onClick={() => navigate({ name: 'home' })}>Главная</button>
         <input className="title-input" value={tpl.name} onChange={e => setTpl({ ...tpl, name: e.target.value })} />
         <div className="spacer" />
         <select value={tpl.language} onChange={e => setTpl({ ...tpl, language: e.target.value as any })}>
