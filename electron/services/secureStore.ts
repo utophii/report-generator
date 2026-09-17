@@ -2,20 +2,24 @@ import { safeStorage } from 'electron';
 import fs from 'fs';
 import path from 'path';
 import { getSecureDir } from '../paths';
+import { Language } from '../../shared/types';
 
 const KEY_FILE = () => path.join(getSecureDir(), 'ai_key.bin');
 const PLAINTEXT_WARNING_FILE = () => path.join(getSecureDir(), 'ai_key.plain.txt');
 
-export function saveApiKey(key: string): { warning?: string } {
+export function saveApiKey(key: string, lang: Language = 'ru'): { warning?: string } {
   if (safeStorage.isEncryptionAvailable()) {
     const encrypted = safeStorage.encryptString(key);
     fs.writeFileSync(KEY_FILE(), encrypted);
     if (fs.existsSync(PLAINTEXT_WARNING_FILE())) fs.unlinkSync(PLAINTEXT_WARNING_FILE());
     return {};
   }
-  // fallback: ОС не предоставляет защищённое хранилище (например, Linux без keyring)
   fs.writeFileSync(PLAINTEXT_WARNING_FILE(), key, { mode: 0o600 });
-  return { warning: 'Системное защищённое хранилище недоступно. Ключ сохранён в виде обычного файла с ограниченными правами доступа.' };
+  return {
+    warning: lang === 'ru'
+      ? 'Системное защищённое хранилище недоступно. Ключ сохранён в виде обычного файла с ограниченными правами доступа.'
+      : 'The OS secure store is unavailable. The key was saved as a plain file with restricted permissions.'
+  };
 }
 
 export function loadApiKey(): string | null {

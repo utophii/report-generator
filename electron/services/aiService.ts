@@ -18,9 +18,10 @@ function buildPrompt(req: AiActionRequest): { system: string; user: string } {
 }
 
 export async function runAiAction(settings: AppSettings, req: AiActionRequest): Promise<string> {
-  if (!settings.aiEnabled) throw new Error('ИИ-функции отключены в настройках');
+  const ru = settings.uiLanguage === 'ru';
+  if (!settings.aiEnabled) throw new Error(ru ? 'ИИ-функции отключены в настройках' : 'AI features are disabled in Settings');
   const apiKey = loadApiKey();
-  if (!apiKey) throw new Error('API-ключ не настроен');
+  if (!apiKey) throw new Error(ru ? 'API-ключ не настроен' : 'API key is not configured');
 
   const { system, user } = buildPrompt(req);
   const url = `${settings.aiBaseUrl.replace(/\/$/, '')}/chat/completions`;
@@ -37,10 +38,10 @@ export async function runAiAction(settings: AppSettings, req: AiActionRequest): 
 
   if (!res.ok) {
     const errText = await res.text().catch(() => '');
-    throw new Error(`Ошибка провайдера ИИ (${res.status}): ${errText.slice(0, 300)}`);
+    throw new Error(`${ru ? 'Ошибка провайдера ИИ' : 'AI provider error'} (${res.status}): ${errText.slice(0, 300)}`);
   }
   const data: any = await res.json();
   const content = data?.choices?.[0]?.message?.content;
-  if (!content) throw new Error('Провайдер вернул пустой ответ');
+  if (!content) throw new Error(ru ? 'Провайдер вернул пустой ответ' : 'The provider returned an empty response');
   return content as string;
 }

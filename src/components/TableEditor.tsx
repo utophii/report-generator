@@ -1,9 +1,15 @@
 import React, { useState } from 'react';
 import { v4 as uuid } from 'uuid';
-import { TableValue } from '@shared/types';
+import { Language, TableValue } from '@shared/types';
 import ImportDialog from './ImportDialog';
 
-export default function TableEditor({ value, onChange }: { value: TableValue; onChange: (v: TableValue) => void }) {
+interface Props {
+  value: TableValue;
+  onChange: (v: TableValue) => void;
+  lang: Language;
+}
+
+export default function TableEditor({ value, onChange, lang }: Props) {
   const [importOpen, setImportOpen] = useState(false);
   const v = (value && typeof value === 'object' && Array.isArray((value as any).columns))
     ? value
@@ -11,7 +17,7 @@ export default function TableEditor({ value, onChange }: { value: TableValue; on
 
   function addColumn() {
     const key = `col_${uuid().slice(0, 6)}`;
-    onChange({ ...v, columns: [...v.columns, { key, label: 'Новый столбец', numeric: false }] });
+    onChange({ ...v, columns: [...v.columns, { key, label: lang === 'ru' ? 'Новый столбец' : 'New column', numeric: false }] });
   }
   function addRow() {
     const row: Record<string, any> = {};
@@ -39,9 +45,9 @@ export default function TableEditor({ value, onChange }: { value: TableValue; on
   return (
     <div className="table-editor">
       <div className="table-toolbar">
-        <button onClick={addColumn}>+ столбец</button>
-        <button onClick={addRow}>+ строка</button>
-        <button onClick={() => setImportOpen(true)}>Импортировать CSV/XLSX</button>
+        <button onClick={addColumn}>+ {lang === 'ru' ? 'столбец' : 'column'}</button>
+        <button onClick={addRow}>+ {lang === 'ru' ? 'строка' : 'row'}</button>
+        <button onClick={() => setImportOpen(true)}>{lang === 'ru' ? 'Импортировать CSV/XLSX' : 'Import CSV/XLSX'}</button>
       </div>
       <div className="table-scroll">
         <table>
@@ -50,7 +56,7 @@ export default function TableEditor({ value, onChange }: { value: TableValue; on
               {v.columns.map(c => (
                 <th key={c.key}>
                   <input value={c.label} onChange={e => renameColumn(c.key, e.target.value)} />
-                  <label className="numeric-toggle"><input type="checkbox" checked={c.numeric} onChange={() => toggleNumeric(c.key)} /> число</label>
+                  <label className="numeric-toggle"><input type="checkbox" checked={c.numeric} onChange={() => toggleNumeric(c.key)} /> {lang === 'ru' ? 'число' : 'number'}</label>
                   <button onClick={() => removeColumn(c.key)}>✕</button>
                 </th>
               ))}
@@ -72,6 +78,7 @@ export default function TableEditor({ value, onChange }: { value: TableValue; on
       </div>
       {importOpen && (
         <ImportDialog
+          lang={lang}
           onClose={() => setImportOpen(false)}
           onImport={(columns, rows, meta) => { onChange({ columns, rows, sourceFileMeta: meta }); setImportOpen(false); }}
         />

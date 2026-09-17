@@ -29,15 +29,15 @@ export default function PreviewPage({ id }: { id: string }) {
     const res = await api.exportReport.run(report!, format);
     setBusy(null);
     if (res.cancelled) return;
-    if (!res.ok) { setMessage(`Ошибка экспорта: ${res.error}`); return; }
-    setMessage(`Сохранено: ${res.filePath}`);
+    if (!res.ok) { setMessage(`${lang === 'ru' ? 'Ошибка экспорта' : 'Export failed'}: ${res.error}`); return; }
+    setMessage(`${lang === 'ru' ? 'Сохранено' : 'Saved'}: ${res.filePath}`);
   }
 
   return (
     <div className="page">
       <header className="topbar">
         <button onClick={() => navigate({ name: 'reportEditor', id: report.id })}>{t('backToEdit', lang)}</button>
-        <button onClick={() => navigate({ name: 'home' })}>Главная</button>
+        <button onClick={() => navigate({ name: 'home' })}>{lang === 'ru' ? 'Главная' : 'Home'}</button>
         <div className="spacer" />
         <span>{t('theme', lang)}:</span>
         {(Object.keys(THEMES) as ThemeId[]).map(id => (

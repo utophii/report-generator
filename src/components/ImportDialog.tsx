@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
 import { api } from '../api/bridge';
-import { TableColumn } from '@shared/types';
+import { Language, TableColumn } from '@shared/types';
 import { v4 as uuid } from 'uuid';
 
 interface Props {
+  lang: Language;
   onClose: () => void;
   onImport: (columns: TableColumn[], rows: Record<string, any>[], meta: { fileName: string; sheet?: string; importedAt: string }) => void;
 }
 
-export default function ImportDialog({ onClose, onImport }: Props) {
+export default function ImportDialog({ lang, onClose, onImport }: Props) {
+  const ru = lang === 'ru';
   const [filePath, setFilePath] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [parsed, setParsed] = useState<any>(null);
@@ -36,7 +38,7 @@ export default function ImportDialog({ onClose, onImport }: Props) {
     const cols: TableColumn[] = headers
       .map((h, i) => ({ i, h }))
       .filter(({ i }) => includedCols.has(i))
-      .map(({ h, i }) => ({ key: `col_${i}_${uuid().slice(0, 4)}`, label: h || `Column ${i + 1}`, numeric: res.data.rows.every((r: any[]) => r[i] === null || r[i] === '' || !isNaN(Number(r[i]))) }));
+      .map(({ h, i }) => ({ key: `col_${i}_${uuid().slice(0, 4)}`, label: h || `${ru ? 'Столбец' : 'Column'} ${i + 1}`, numeric: res.data.rows.every((r: any[]) => r[i] === null || r[i] === '' || !isNaN(Number(r[i]))) }));
     const rows = res.data.rows.map((r: any[]) => {
       const obj: Record<string, any> = {};
       cols.forEach((c, ci) => {
@@ -51,9 +53,9 @@ export default function ImportDialog({ onClose, onImport }: Props) {
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal wide" onClick={e => e.stopPropagation()}>
-        <h3>Импорт таблицы</h3>
+        <h3>{ru ? 'Импорт таблицы' : 'Import table'}</h3>
         {error && <div className="error-banner">{error}</div>}
-        {!parsed && <button onClick={pickFile}>Выбрать файл CSV/XLSX</button>}
+        {!parsed && <button onClick={pickFile}>{ru ? 'Выбрать файл CSV/XLSX' : 'Choose a CSV/XLSX file'}</button>}
         {parsed && (
           <>
             {parsed.type === 'xlsx' && (
@@ -82,11 +84,11 @@ export default function ImportDialog({ onClose, onImport }: Props) {
                   ))}
                 </tbody>
               </table>
-              <div className="hint">Показаны первые строки. Всего строк: {parsed.sheets.find((s: any) => s.name === sheetName)?.totalRows}</div>
+              <div className="hint">{ru ? 'Показаны первые строки. Всего строк: ' : 'Showing the first rows. Total rows: '}{parsed.sheets.find((s: any) => s.name === sheetName)?.totalRows}</div>
             </div>
             <div className="modal-actions">
-              <button onClick={onClose}>Отмена</button>
-              <button className="primary" onClick={confirmImport}>Импортировать</button>
+              <button onClick={onClose}>{ru ? 'Отмена' : 'Cancel'}</button>
+              <button className="primary" onClick={confirmImport}>{ru ? 'Импортировать' : 'Import'}</button>
             </div>
           </>
         )}

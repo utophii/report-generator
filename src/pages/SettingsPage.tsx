@@ -50,12 +50,12 @@ export default function SettingsPage() {
       </section>
 
       <section className="settings-block">
-        <h3>ИИ</h3>
+        <h3>{lang === 'ru' ? 'ИИ' : 'AI'}</h3>
         <label><input type="checkbox" checked={settings.aiEnabled} onChange={e => updateSettings({ aiEnabled: e.target.checked })} /> {lang === 'ru' ? 'Включить ИИ-функции' : 'Enable AI features'}</label>
         <label>{lang === 'ru' ? 'Провайдер' : 'Provider'}
           <select value={settings.aiProvider} onChange={e => updateSettings({ aiProvider: e.target.value as any })}>
-            <option value="openai">OpenAI-совместимый</option>
-            <option value="custom">Другой (свой endpoint)</option>
+            <option value="openai">{lang === 'ru' ? 'OpenAI-совместимый' : 'OpenAI-compatible'}</option>
+            <option value="custom">{lang === 'ru' ? 'Другой (свой endpoint)' : 'Other (custom endpoint)'}</option>
           </select>
         </label>
         <label>Base URL <input value={settings.aiBaseUrl} onChange={e => updateSettings({ aiBaseUrl: e.target.value })} /></label>

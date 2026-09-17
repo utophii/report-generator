@@ -1,7 +1,7 @@
 import React, { useMemo, useRef, useState } from 'react';
 import { Chart as ChartJS, registerables } from 'chart.js';
 import { Chart } from 'react-chartjs-2';
-import { ChartValue, Section, TableValue } from '@shared/types';
+import { ChartValue, Language, Section, TableValue } from '@shared/types';
 import { api } from '../api/bridge';
 
 ChartJS.register(...registerables);
@@ -10,6 +10,7 @@ interface Props {
   value: ChartValue;
   onChange: (v: ChartValue) => void;
   reportSections: Section[];
+  lang: Language;
 }
 
 function findTableField(sections: Section[], fieldId: string | null) {
@@ -21,7 +22,8 @@ function findTableField(sections: Section[], fieldId: string | null) {
   return null;
 }
 
-export default function ChartEditor({ value, onChange, reportSections }: Props) {
+export default function ChartEditor({ value, onChange, reportSections, lang }: Props) {
+  const ru = lang === 'ru';
   const canvasRef = useRef<ChartJS>(null);
   const v = value ?? { sourceFieldId: null, chartType: 'bar', title: '', categoryColumn: null, valueColumns: [], showLegend: true };
   const [error, setError] = useState<string | null>(null);
@@ -46,10 +48,10 @@ export default function ChartEditor({ value, onChange, reportSections }: Props) 
   }, [table, v.categoryColumn, v.valueColumns]);
 
   function canBuild() {
-    if (!table || table.rows.length === 0) return 'Нет данных: выберите таблицу с заполненными строками.';
-    if (numericCols.length === 0) return 'В таблице нет числовых столбцов.';
-    if (!v.categoryColumn) return 'Выберите столбец категорий (ось X).';
-    if (v.valueColumns.length === 0) return 'Выберите хотя бы один числовой столбец значений.';
+    if (!table || table.rows.length === 0) return ru ? 'Нет данных: выберите таблицу с заполненными строками.' : 'No data: choose a table with filled rows.';
+    if (numericCols.length === 0) return ru ? 'В таблице нет числовых столбцов.' : 'The table has no numeric columns.';
+    if (!v.categoryColumn) return ru ? 'Выберите столбец категорий (ось X).' : 'Choose a category column (X axis).';
+    if (v.valueColumns.length === 0) return ru ? 'Выберите хотя бы один числовой столбец значений.' : 'Choose at least one numeric value column.';
     return null;
   }
 
@@ -67,14 +69,14 @@ export default function ChartEditor({ value, onChange, reportSections }: Props) 
   return (
     <div className="chart-editor">
       <select value={v.sourceFieldId ?? ''} onChange={e => onChange({ ...v, sourceFieldId: e.target.value || null, categoryColumn: null, valueColumns: [] })}>
-        <option value="">Таблица-источник…</option>
+        <option value="">{ru ? 'Таблица-источник…' : 'Source table…'}</option>
         {allTableFields.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}
       </select>
 
       {table && (
         <>
           <select value={v.categoryColumn ?? ''} onChange={e => onChange({ ...v, categoryColumn: e.target.value || null })}>
-            <option value="">Категория (ось X)…</option>
+            <option value="">{ru ? 'Категория (ось X)…' : 'Category (X axis)…'}</option>
             {table.columns.map(c => <option key={c.key} value={c.key}>{c.label}</option>)}
           </select>
           <div className="checkbox-group">
@@ -90,10 +92,12 @@ export default function ChartEditor({ value, onChange, reportSections }: Props) 
       )}
 
       <select value={v.chartType} onChange={e => onChange({ ...v, chartType: e.target.value as any })}>
-        <option value="bar">Столбчатая</option><option value="line">Линейная</option><option value="pie">Круговая</option>
+        <option value="bar">{ru ? 'Столбчатая' : 'Bar'}</option>
+        <option value="line">{ru ? 'Линейная' : 'Line'}</option>
+        <option value="pie">{ru ? 'Круговая' : 'Pie'}</option>
       </select>
-      <input placeholder="Заголовок диаграммы" value={v.title} onChange={e => onChange({ ...v, title: e.target.value })} />
-      <label><input type="checkbox" checked={v.showLegend} onChange={e => onChange({ ...v, showLegend: e.target.checked })} /> Легенда</label>
+      <input placeholder={ru ? 'Заголовок диаграммы' : 'Chart title'} value={v.title} onChange={e => onChange({ ...v, title: e.target.value })} />
+      <label><input type="checkbox" checked={v.showLegend} onChange={e => onChange({ ...v, showLegend: e.target.checked })} /> {ru ? 'Легенда' : 'Legend'}</label>
 
       {error && <div className="error-banner">{error}</div>}
 
@@ -103,8 +107,8 @@ export default function ChartEditor({ value, onChange, reportSections }: Props) 
             options={{ plugins: { legend: { display: v.showLegend }, title: { display: !!v.title, text: v.title } } }} />
         </div>
       )}
-      <button onClick={saveImage}>Сохранить изображение диаграммы (для экспорта)</button>
-      {v.imagePath && <div className="hint">Изображение сохранено ✓</div>}
+      <button onClick={saveImage}>{ru ? 'Сохранить изображение диаграммы (для экспорта)' : 'Save chart image (for export)'}</button>
+      {v.imagePath && <div className="hint">{ru ? 'Изображение сохранено ✓' : 'Image saved ✓'}</div>}
     </div>
   );
 }

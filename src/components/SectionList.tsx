@@ -10,18 +10,18 @@ interface Props {
   sections: Section[];
   onChange: (s: Section[]) => void;
   lang: Language;
-  reportSections?: Section[]; // для chart-полей нужен доступ ко всем таблицам отчёта
+  reportSections?: Section[];
 }
 
-function newSection(order: number): Section {
-  return { id: uuid(), title: 'Новый раздел', level: 1, required: false, order, showInToc: true, fields: [] };
+function newSection(order: number, lang: Language): Section {
+  return { id: uuid(), title: lang === 'ru' ? 'Новый раздел' : 'New section', level: 1, required: false, order, showInToc: true, fields: [] };
 }
-function newField(order: number, type: FieldType): Field {
-  const base: Field = { id: uuid(), label: 'Новое поле', type, required: false, order, value: null };
+function newField(order: number, type: FieldType, lang: Language): Field {
+  const base: Field = { id: uuid(), label: lang === 'ru' ? 'Новое поле' : 'New field', type, required: false, order, value: null };
   if (type === 'list') base.value = [];
   if (type === 'table') base.value = { columns: [], rows: [] };
   if (type === 'chart') base.value = { sourceFieldId: null, chartType: 'bar', title: '', categoryColumn: null, valueColumns: [], showLegend: true };
-  if (type === 'select') { base.options = ['Вариант 1', 'Вариант 2']; base.value = ''; }
+  if (type === 'select') { base.options = lang === 'ru' ? ['Вариант 1', 'Вариант 2'] : ['Option 1', 'Option 2']; base.value = ''; }
   return base;
 }
 
@@ -32,7 +32,7 @@ export default function SectionList({ mode, sections, onChange, lang, reportSect
     onChange(sections.map(s => s.id === id ? { ...s, ...patch } : s));
   }
   function addSection() {
-    onChange([...sections, newSection(sections.length)]);
+    onChange([...sections, newSection(sections.length, lang)]);
   }
   function removeSection(id: string) {
     onChange(sections.filter(s => s.id !== id));
@@ -51,7 +51,7 @@ export default function SectionList({ mode, sections, onChange, lang, reportSect
 
   function addField(sectionId: string, type: FieldType) {
     const s = sections.find(x => x.id === sectionId)!;
-    updateSection(sectionId, { fields: [...s.fields, newField(s.fields.length, type)] });
+    updateSection(sectionId, { fields: [...s.fields, newField(s.fields.length, type, lang)] });
   }
   function updateField(sectionId: string, fieldId: string, patch: Partial<Field>) {
     const s = sections.find(x => x.id === sectionId)!;
@@ -78,8 +78,8 @@ export default function SectionList({ mode, sections, onChange, lang, reportSect
       {sorted.map((s, i) => (
         <div key={s.id} className="section-card">
           <div className="section-header">
-            <button title="Вверх" onClick={() => move(s.id, -1)} disabled={i === 0}>▲</button>
-            <button title="Вниз" onClick={() => move(s.id, 1)} disabled={i === sorted.length - 1}>▼</button>
+            <button title={lang === 'ru' ? 'Вверх' : 'Move up'} onClick={() => move(s.id, -1)} disabled={i === 0}>▲</button>
+            <button title={lang === 'ru' ? 'Вниз' : 'Move down'} onClick={() => move(s.id, 1)} disabled={i === sorted.length - 1}>▼</button>
             <input className="section-title-input" value={s.title} onChange={e => updateSection(s.id, { title: e.target.value })} />
             <select value={s.level} onChange={e => updateSection(s.id, { level: Number(e.target.value) as any })}>
               <option value={1}>H1</option><option value={2}>H2</option><option value={3}>H3</option>
@@ -90,7 +90,7 @@ export default function SectionList({ mode, sections, onChange, lang, reportSect
             <button onClick={() => duplicateSection(s)}>{t('duplicate', lang)}</button>
             <button onClick={() => removeSection(s.id)}>{t('delete', lang)}</button>
           </div>
-          <input className="section-hint-input" placeholder="Подсказка / описание раздела" value={s.hint ?? ''}
+          <input className="section-hint-input" placeholder={lang === 'ru' ? 'Подсказка / описание раздела' : 'Hint / section description'} value={s.hint ?? ''}
             onChange={e => updateSection(s.id, { hint: e.target.value })} />
 
           {!s.collapsed && (

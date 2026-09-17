@@ -28,7 +28,7 @@ export default function ReportEditorPage({ id }: { id: string }) {
 
   if (!report) return <div className="loading">…</div>;
 
-  const statusText = { idle: '', saving: t('saving', lang), saved: t('saved', lang), error: 'Ошибка сохранения' }[status];
+  const statusText = { idle: '', saving: t('saving', lang), saved: t('saved', lang), error: lang === 'ru' ? 'Ошибка сохранения' : 'Save failed' }[status];
 
   return (
     <div className="page">
@@ -41,7 +41,9 @@ export default function ReportEditorPage({ id }: { id: string }) {
           <option value="ru">RU</option><option value="en">EN</option>
         </select>
         <select value={report.theme} onChange={e => scheduleSave({ ...report, theme: e.target.value as any })}>
-          <option value="strict">Строгая</option><option value="modern">Современная</option><option value="minimal">Минималистичная</option>
+          <option value="strict">{lang === 'ru' ? 'Строгая' : 'Strict'}</option>
+          <option value="modern">{lang === 'ru' ? 'Современная' : 'Modern'}</option>
+          <option value="minimal">{lang === 'ru' ? 'Минималистичная' : 'Minimal'}</option>
         </select>
         <span className="save-status">{statusText}</span>
         <div className="spacer" />

@@ -14,6 +14,7 @@ interface Props {
 
 export default function NotesPanel({ targetType, lang, onApplyText, onApplyList }: Props) {
   const { settings } = useAppStore();
+  const ru = lang === 'ru';
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState('');
   const [blocks, setBlocks] = useState<Block[] | null>(null);
@@ -65,53 +66,53 @@ export default function NotesPanel({ targetType, lang, onApplyText, onApplyList 
 
   function reset() { setOpen(false); setDraft(''); setBlocks(null); setAiResult(null); setAiConfirm(false); }
 
-  if (!open) return <button className="link-btn" onClick={() => setOpen(true)}>Заметки / черновик…</button>;
+  if (!open) return <button className="link-btn" onClick={() => setOpen(true)}>{ru ? 'Заметки / черновик…' : 'Notes / draft…'}</button>;
 
   return (
     <div className="notes-panel">
-      <textarea rows={5} placeholder="Вставьте черновик, заметки встречи или список фактов…" value={draft} onChange={e => setDraft(e.target.value)} />
+      <textarea rows={5} placeholder={ru ? 'Вставьте черновик, заметки встречи или список фактов…' : 'Paste a draft, meeting notes, or a list of facts…'} value={draft} onChange={e => setDraft(e.target.value)} />
       <div className="notes-actions">
-        <button onClick={insertAsIs} disabled={!draft.trim()}>Вставить как есть</button>
-        <button onClick={runStructure} disabled={!draft.trim()}>Структурировать по правилам</button>
-        <button onClick={() => setAiConfirm(true)} disabled={!draft.trim() || !settings.aiEnabled}>Обработать ИИ</button>
-        <button onClick={reset}>Отмена</button>
+        <button onClick={insertAsIs} disabled={!draft.trim()}>{ru ? 'Вставить как есть' : 'Insert as is'}</button>
+        <button onClick={runStructure} disabled={!draft.trim()}>{ru ? 'Структурировать по правилам' : 'Structure by rules'}</button>
+        <button onClick={() => setAiConfirm(true)} disabled={!draft.trim() || !settings.aiEnabled}>{ru ? 'Обработать ИИ' : 'Process with AI'}</button>
+        <button onClick={reset}>{ru ? 'Отмена' : 'Cancel'}</button>
       </div>
-      {!settings.aiEnabled && <div className="hint">ИИ отключён (Настройки → ИИ)</div>}
+      {!settings.aiEnabled && <div className="hint">{ru ? 'ИИ отключён (Настройки → ИИ)' : 'AI is disabled (Settings → AI)'}</div>}
 
       {blocks && (
         <div className="structured-preview">
-          <h4>Предложенная структура</h4>
+          <h4>{ru ? 'Предложенная структура' : 'Suggested structure'}</h4>
           <ul>
             {blocks.map((b, i) => (
               <li key={i}>{b.kind === 'tagged' ? `[${TAG_LABELS[b.tag]?.[lang] ?? b.tag}] ` : ''}{(b as any).text}</li>
             ))}
           </ul>
-          <button className="primary" onClick={applyStructured}>Применить</button>
+          <button className="primary" onClick={applyStructured}>{ru ? 'Применить' : 'Apply'}</button>
         </div>
       )}
 
       {aiConfirm && (
         <div className="modal-overlay" onClick={() => setAiConfirm(false)}>
           <div className="modal" onClick={e => e.stopPropagation()}>
-            <h3>Подтверждение отправки в ИИ</h3>
-            <p>Выбранный текст будет передан подключённому провайдеру ИИ. Продолжить?</p>
+            <h3>{ru ? 'Подтверждение отправки в ИИ' : 'Confirm sending to AI'}</h3>
+            <p>{ru ? 'Выбранный текст будет передан подключённому провайдеру ИИ. Продолжить?' : 'The text will be sent to the connected AI provider. Continue?'}</p>
             <div className="modal-actions">
-              <button onClick={() => setAiConfirm(false)}>Отмена</button>
-              <button className="primary" onClick={() => { setAiConfirm(false); runAi(); }}>Отправить</button>
+              <button onClick={() => setAiConfirm(false)}>{ru ? 'Отмена' : 'Cancel'}</button>
+              <button className="primary" onClick={() => { setAiConfirm(false); runAi(); }}>{ru ? 'Отправить' : 'Send'}</button>
             </div>
           </div>
         </div>
       )}
 
-      {busy && <div className="hint">Обработка…</div>}
+      {busy && <div className="hint">{ru ? 'Обработка…' : 'Processing…'}</div>}
       {aiError && <div className="error-banner">{aiError}</div>}
       {aiResult && (
         <div className="structured-preview">
-          <h4>Предложение ИИ</h4>
+          <h4>{ru ? 'Предложение ИИ' : 'AI suggestion'}</h4>
           <textarea rows={6} value={aiResult} onChange={e => setAiResult(e.target.value)} />
           <div className="modal-actions">
-            <button onClick={() => setAiResult(null)}>Отклонить</button>
-            <button className="primary" onClick={applyAiResult}>Применить</button>
+            <button onClick={() => setAiResult(null)}>{ru ? 'Отклонить' : 'Reject'}</button>
+            <button className="primary" onClick={applyAiResult}>{ru ? 'Применить' : 'Apply'}</button>
           </div>
         </div>
       )}

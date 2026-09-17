@@ -1,5 +1,5 @@
 import React from 'react';
-import { Field, Language, TableValue, ImageValue, ChartValue } from '@shared/types';
+import { Field, Language, Section, TableValue, ImageValue, ChartValue } from '@shared/types';
 import TableEditor from './TableEditor';
 import ChartEditor from './ChartEditor';
 import NotesPanel from './NotesPanel';
@@ -52,7 +52,7 @@ export default function FieldValueEditor({ field, onChange, lang, allTableFields
               <button onClick={() => onChange({ value: items.filter((_, i) => i !== idx) })}>✕</button>
             </div>
           ))}
-          <button onClick={() => onChange({ value: [...items, ''] })}>+ пункт</button>
+          <button onClick={() => onChange({ value: [...items, ''] })}>+ {lang === 'ru' ? 'пункт' : 'item'}</button>
           <NotesPanel targetType="list" currentValue={items} lang={lang}
             onApplyList={list => onChange({ value: [...items, ...list] })} />
         </div>
@@ -62,7 +62,7 @@ export default function FieldValueEditor({ field, onChange, lang, allTableFields
       return (
         <div className="field-value">
           <label>{field.label}</label>
-          <TableEditor value={field.value as TableValue} onChange={v => onChange({ value: v })} />
+          <TableEditor value={field.value as TableValue} onChange={v => onChange({ value: v })} lang={lang} />
         </div>
       );
     case 'image': {
@@ -74,9 +74,9 @@ export default function FieldValueEditor({ field, onChange, lang, allTableFields
           <button onClick={async () => {
             const p = await api.dialogs.pickImage();
             if (p) onChange({ value: { path: p, caption: img?.caption ?? '' } });
-          }}>{img ? 'Заменить изображение' : 'Выбрать изображение'}</button>
+          }}>{img ? (lang === 'ru' ? 'Заменить изображение' : 'Replace image') : (lang === 'ru' ? 'Выбрать изображение' : 'Choose image')}</button>
           {img?.path && (
-            <input placeholder="Подпись" value={img.caption ?? ''} onChange={e => onChange({ value: { ...img, caption: e.target.value } })} />
+            <input placeholder={lang === 'ru' ? 'Подпись' : 'Caption'} value={img.caption ?? ''} onChange={e => onChange({ value: { ...img, caption: e.target.value } })} />
           )}
         </div>
       );
@@ -85,7 +85,7 @@ export default function FieldValueEditor({ field, onChange, lang, allTableFields
       return (
         <div className="field-value">
           <label>{field.label}</label>
-          <ChartEditor value={field.value as ChartValue} onChange={v => onChange({ value: v })} reportSections={reportSections} />
+          <ChartEditor value={field.value as ChartValue} onChange={v => onChange({ value: v })} reportSections={reportSections} lang={lang} />
         </div>
       );
     default:

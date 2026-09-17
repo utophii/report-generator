@@ -22,13 +22,11 @@ function logError(context: string, err: unknown) {
 export function registerIpcHandlers() {
   DB.initDb();
 
-  // ---------- Templates ----------
   ipcMain.handle('templates:list', () => DB.listTemplates());
   ipcMain.handle('templates:get', (_e, id: string) => DB.getTemplateById(id));
   ipcMain.handle('templates:save', (_e, t: Template) => { DB.upsertTemplate(t); return t; });
   ipcMain.handle('templates:delete', (_e, id: string) => { DB.deleteTemplate(id); return true; });
 
-  // ---------- Reports ----------
   ipcMain.handle('reports:list', () => DB.listReports());
   ipcMain.handle('reports:get', (_e, id: string) => DB.getReportById(id));
   ipcMain.handle('reports:save', (_e, r: Report) => { r.updatedAt = new Date().toISOString(); DB.upsertReport(r); return r; });
@@ -56,13 +54,11 @@ export function registerIpcHandlers() {
     return report;
   });
 
-  // ---------- Settings ----------
   ipcMain.handle('settings:get', () => DB.getSettings());
   ipcMain.handle('settings:set', (_e, s: AppSettings) => { DB.setSettings(s); return s; });
 
-  // ---------- AI ----------
   ipcMain.handle('ai:hasKey', () => hasApiKey());
-  ipcMain.handle('ai:setKey', (_e, key: string) => saveApiKey(key));
+  ipcMain.handle('ai:setKey', (_e, key: string) => saveApiKey(key, DB.getSettings().uiLanguage));
   ipcMain.handle('ai:deleteKey', () => { deleteApiKey(); return true; });
   ipcMain.handle('ai:process', async (_e, req: AiActionRequest) => {
     const settings = DB.getSettings();
@@ -74,7 +70,6 @@ export function registerIpcHandlers() {
     }
   });
 
-  // ---------- Dialogs / files ----------
   ipcMain.handle('dialog:openImportFile', async () => {
     const res = await dialog.showOpenDialog({
       filters: [{ name: 'Таблицы', extensions: ['csv', 'xlsx'] }],
@@ -118,10 +113,9 @@ export function registerIpcHandlers() {
 
   ipcMain.handle('app:openDataFolder', () => { shell.openPath(getUserDataPath()); return true; });
 
-  // ---------- Import ----------
   ipcMain.handle('import:parseFile', async (_e, filePath: string) => {
     try {
-      return { ok: true, data: await parseImportFile(filePath) };
+      return { ok: true, data: await parseImportFile(filePath, DB.getSettings().uiLanguage) };
     } catch (err) {
       logError('import:parseFile', err);
       return { ok: false, error: (err as Error).message };
@@ -129,14 +123,13 @@ export function registerIpcHandlers() {
   });
   ipcMain.handle('import:loadFullSheet', async (_e, filePath: string, sheetName?: string) => {
     try {
-      return { ok: true, data: await loadFullSheet(filePath, sheetName) };
+      return { ok: true, data: await loadFullSheet(filePath, sheetName, DB.getSettings().uiLanguage) };
     } catch (err) {
       logError('import:loadFullSheet', err);
       return { ok: false, error: (err as Error).message };
     }
   });
 
-  // ---------- Export ----------
   async function doExport(report: Report, format: 'pdf' | 'docx' | 'xlsx', win: BrowserWindow | null) {
     const settings = DB.getSettings();
     const baseDir = settings.defaultExportDir && fs.existsSync(settings.defaultExportDir)

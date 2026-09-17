@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import Papa from 'papaparse';
 import ExcelJS from 'exceljs';
+import { Language } from '../../shared/types';
 
 export interface SheetPreview {
   name: string;
@@ -14,18 +15,19 @@ export interface ParsedFile {
   sheets: SheetPreview[];
 }
 
-export async function parseImportFile(filePath: string): Promise<ParsedFile> {
+export async function parseImportFile(filePath: string, lang: Language = 'ru'): Promise<ParsedFile> {
+  const ru = lang === 'ru';
   const ext = path.extname(filePath).toLowerCase();
-  if (!fs.existsSync(filePath)) throw new Error('Файл не найден');
+  if (!fs.existsSync(filePath)) throw new Error(ru ? 'Файл не найден' : 'File not found');
 
   if (ext === '.csv') {
     const content = fs.readFileSync(filePath, 'utf-8');
     const parsed = Papa.parse<string[]>(content, { skipEmptyLines: true });
     if (parsed.errors?.length) {
-      throw new Error('Не удалось прочитать CSV: ' + parsed.errors[0].message);
+      throw new Error(ru ? 'Не удалось прочитать CSV: ' + parsed.errors[0].message : 'Could not read the CSV file: ' + parsed.errors[0].message);
     }
     const rows = parsed.data as string[][];
-    if (rows.length === 0) throw new Error('CSV-файл пуст');
+    if (rows.length === 0) throw new Error(ru ? 'CSV-файл пуст' : 'The CSV file is empty');
     const headers = rows[0];
     const body = rows.slice(1);
     return { type: 'csv', sheets: [{ name: 'CSV', headers, previewRows: body.slice(0, 20), totalRows: body.length }] };
@@ -36,7 +38,7 @@ export async function parseImportFile(filePath: string): Promise<ParsedFile> {
     try {
       await wb.xlsx.readFile(filePath);
     } catch (e: any) {
-      throw new Error('Не удалось прочитать XLSX: файл повреждён или имеет неподдерживаемый формат');
+      throw new Error(ru ? 'Не удалось прочитать XLSX: файл повреждён или имеет неподдерживаемый формат' : 'Could not read the XLSX file: it is damaged or has an unsupported format');
     }
     const sheets: SheetPreview[] = wb.worksheets.map(ws => {
       const rows: (string | number | null)[][] = [];
@@ -48,15 +50,15 @@ export async function parseImportFile(filePath: string): Promise<ParsedFile> {
       const body = rows.slice(1);
       return { name: ws.name, headers, previewRows: body.slice(0, 20), totalRows: body.length };
     });
-    if (sheets.length === 0) throw new Error('В книге не найдено ни одного листа');
+    if (sheets.length === 0) throw new Error(ru ? 'В книге не найдено ни одного листа' : 'The workbook contains no sheets');
     return { type: 'xlsx', sheets };
   }
 
-  throw new Error('Поддерживаются только файлы .csv и .xlsx');
+  throw new Error(ru ? 'Поддерживаются только файлы .csv и .xlsx' : 'Only .csv and .xlsx files are supported');
 }
 
-/** Полная загрузка выбранного листа (без ограничения preview) для подтверждённого импорта */
-export async function loadFullSheet(filePath: string, sheetName?: string): Promise<{ headers: string[]; rows: (string | number | null)[][] }> {
+export async function loadFullSheet(filePath: string, sheetName?: string, lang: Language = 'ru'): Promise<{ headers: string[]; rows: (string | number | null)[][] }> {
+  const ru = lang === 'ru';
   const ext = path.extname(filePath).toLowerCase();
   if (ext === '.csv') {
     const content = fs.readFileSync(filePath, 'utf-8');
@@ -67,7 +69,7 @@ export async function loadFullSheet(filePath: string, sheetName?: string): Promi
   const wb = new ExcelJS.Workbook();
   await wb.xlsx.readFile(filePath);
   const ws = sheetName ? wb.getWorksheet(sheetName) : wb.worksheets[0];
-  if (!ws) throw new Error('Лист не найден в книге');
+  if (!ws) throw new Error(ru ? 'Лист не найден в книге' : 'Sheet not found in the workbook');
   const rows: (string | number | null)[][] = [];
   ws.eachRow(row => {
     const values = (row.values as any[]).slice(1).map(v => (v && typeof v === 'object' && 'text' in v ? v.text : v ?? null));
