@@ -5,6 +5,7 @@ import { Report, Template } from '@shared/types';
 import { buildEmptyTemplate, buildStandardTemplate } from '@shared/defaultTemplates';
 import { useAppStore } from '../store/store';
 import { t } from '../i18n/i18n';
+import ThemeToggle from '../components/ThemeToggle';
 
 export default function HomePage() {
   const { navigate } = useContext(RouteContext);
@@ -35,6 +36,7 @@ export default function HomePage() {
       <header className="topbar">
         <h1>Report Generator</h1>
         <div className="spacer" />
+        <ThemeToggle />
         <select value={lang} onChange={e => updateSettings({ uiLanguage: e.target.value as any })}>
           <option value="ru">Русский</option>
           <option value="en">English</option>

@@ -1,5 +1,6 @@
 export type Language = 'ru' | 'en';
 export type ThemeId = 'strict' | 'modern' | 'minimal';
+export type UiTheme = 'light' | 'dark' | 'system';
 
 export type FieldType =
   | 'text' | 'textarea' | 'richtext' | 'number' | 'date'
@@ -101,6 +102,7 @@ export type AiProvider = 'openai' | 'custom';
 
 export interface AppSettings {
   uiLanguage: Language;
+  uiTheme: UiTheme;
   defaultExportDir: string | null;
   aiEnabled: boolean;
   aiProvider: AiProvider;

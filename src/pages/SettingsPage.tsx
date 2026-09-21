@@ -3,6 +3,7 @@ import { RouteContext } from '../App';
 import { useAppStore } from '../store/store';
 import { api } from '../api/bridge';
 import { t } from '../i18n/i18n';
+import ThemeToggle from '../components/ThemeToggle';
 
 export default function SettingsPage() {
   const { navigate } = useContext(RouteContext);
@@ -34,6 +35,8 @@ export default function SettingsPage() {
       <header className="topbar">
         <button onClick={() => navigate({ name: 'home' })}>←</button>
         <h1>{t('settings', lang)}</h1>
+        <div className="spacer" />
+        <ThemeToggle />
       </header>
 
       <section className="settings-block">
@@ -41,6 +44,13 @@ export default function SettingsPage() {
         <label>{lang === 'ru' ? 'Язык интерфейса' : 'UI language'}
           <select value={settings.uiLanguage} onChange={e => updateSettings({ uiLanguage: e.target.value as any })}>
             <option value="ru">Русский</option><option value="en">English</option>
+          </select>
+        </label>
+        <label>{t('uiTheme', lang)}
+          <select value={settings.uiTheme} onChange={e => updateSettings({ uiTheme: e.target.value as any })}>
+            <option value="light">{t('themeLight', lang)}</option>
+            <option value="dark">{t('themeDark', lang)}</option>
+            <option value="system">{t('themeSystem', lang)}</option>
           </select>
         </label>
         <label>{lang === 'ru' ? 'Папка экспорта по умолчанию' : 'Default export folder'}

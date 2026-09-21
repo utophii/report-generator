@@ -94,7 +94,7 @@ export function listExportsForReport(reportId: string): ExportRecord[] {
 
 // ---------- Settings ----------
 const DEFAULT_SETTINGS: AppSettings = {
-  uiLanguage: 'ru', defaultExportDir: null,
+  uiLanguage: 'ru', uiTheme: 'light', defaultExportDir: null,
   aiEnabled: false, aiProvider: 'openai', aiBaseUrl: 'https://api.openai.com/v1', aiModel: 'gpt-4o-mini'
 };
 export function getSettings(): AppSettings {

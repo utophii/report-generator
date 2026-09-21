@@ -4,6 +4,7 @@ const dict = {
   ru: {
     newReport: 'Новый отчёт', recent: 'Недавние отчёты', templates: 'Шаблоны', settings: 'Настройки',
     search: 'Поиск по названию…', openDataFolder: 'Открыть папку данных', blankTemplate: 'Пустой шаблон',
+    uiTheme: 'Тема интерфейса', themeLight: 'Светлая', themeDark: 'Тёмная', themeSystem: 'Как в системе',
     save: 'Сохранить', saving: 'Сохранение…', saved: 'Сохранено', delete: 'Удалить', duplicate: 'Дублировать',
     preview: 'Предпросмотр', exportBtn: 'Экспорт', backToEdit: 'Назад к редактированию', theme: 'Тема',
     addSection: 'Добавить раздел', addField: 'Добавить поле', title: 'Заголовок', period: 'Период',
@@ -13,6 +14,7 @@ const dict = {
   en: {
     newReport: 'New report', recent: 'Recent reports', templates: 'Templates', settings: 'Settings',
     search: 'Search by title…', openDataFolder: 'Open data folder', blankTemplate: 'Blank template',
+    uiTheme: 'UI theme', themeLight: 'Light', themeDark: 'Dark', themeSystem: 'Match system',
     save: 'Save', saving: 'Saving…', saved: 'Saved', delete: 'Delete', duplicate: 'Duplicate',
     preview: 'Preview', exportBtn: 'Export', backToEdit: 'Back to editing', theme: 'Theme',
     addSection: 'Add section', addField: 'Add field', title: 'Title', period: 'Period',

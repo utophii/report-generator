@@ -20,9 +20,24 @@ export const RouteContext = React.createContext<{ route: Route; navigate: (r: Ro
 
 export default function App() {
   const [route, setRoute] = useState<Route>({ name: 'home' });
-  const { loadSettings, loaded } = useAppStore();
+  const { loadSettings, loaded, settings } = useAppStore();
 
   useEffect(() => { loadSettings(); }, []);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    const media = window.matchMedia('(prefers-color-scheme: dark)');
+    const apply = () => {
+      const resolved = settings.uiTheme === 'system' ? (media.matches ? 'dark' : 'light') : settings.uiTheme;
+      root.dataset.theme = resolved;
+      root.style.colorScheme = resolved;
+    };
+    apply();
+    if (settings.uiTheme !== 'system') return;
+    media.addEventListener('change', apply);
+    return () => media.removeEventListener('change', apply);
+  }, [settings.uiTheme]);
+
   if (!loaded) return <div className="loading">Загрузка…</div>;
 
   const ctx = { route, navigate: setRoute };

@@ -37,7 +37,51 @@
 
   --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
     Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+
+  color-scheme: light;
 }
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  --bg: #12151a;
+  --surface: #1a1e24;
+  --surface-alt: #222731;
+  --border: #2c323c;
+  --border-strong: #3b4255;
+  --text: #e7eaf0;
+  --text-muted: #9aa4b4;
+  --text-faint: #79839a;
+
+  --accent: #4d8bf7;
+  --accent-hover: #74a4fb;
+  --accent-soft: #1e2b41;
+
+  --danger: #ef6f5f;
+  --danger-soft: #3b2422;
+  --success: #46c985;
+  --success-soft: #1b3527;
+  --warning: #d7a63f;
+  --warning-soft: #3a3122;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, .45);
+  --shadow-md: 0 4px 14px rgba(0, 0, 0, .5);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, .6);
+}
+
+:root[data-theme='dark'] .report-view {
+  --surface: #ffffff;
+  --surface-alt: #f7f8fa;
+  --border: #e2e5ea;
+  --border-strong: #cfd4dc;
+  --text: #1c2230;
+  --text-muted: #6b7280;
+  --text-faint: #9aa1ac;
+  --accent: #2e6ee0;
+  --accent-hover: #245ac2;
+  --accent-soft: #e8f0fe;
+}
+
 
 * { box-sizing: border-box; }
 
