@@ -665,12 +665,14 @@ table.preview-table th {
   font-weight: 500;
 }
 .settings-block label > select,
-.settings-block label > input {
+.settings-block label > input:not([type="checkbox"]) {
   width: 100%;
 }
 .settings-block label[for], .settings-block > label:has(input[type="checkbox"]) {
   flex-direction: row;
   align-items: center;
+  gap: 8px;
+  cursor: pointer;
 }
 
 .preview-wrapper {
