@@ -10,6 +10,7 @@ interface Props {
   sections: Section[];
   onChange: (s: Section[]) => void;
   lang: Language;
+  contentLang?: Language;
   reportSections?: Section[];
 }
 
@@ -25,7 +26,7 @@ function newField(order: number, type: FieldType, lang: Language): Field {
   return base;
 }
 
-export default function SectionList({ mode, sections, onChange, lang, reportSections }: Props) {
+export default function SectionList({ mode, sections, onChange, lang, contentLang, reportSections }: Props) {
   const sorted = [...sections].sort((a, b) => a.order - b.order);
 
   function updateSection(id: string, patch: Partial<Section>) {
@@ -104,7 +105,7 @@ export default function SectionList({ mode, sections, onChange, lang, reportSect
                   </div>
                   {mode === 'template'
                     ? <FieldDefinitionEditor field={f} onChange={patch => updateField(s.id, f.id, patch)} lang={lang} />
-                    : <FieldValueEditor field={f} onChange={patch => updateField(s.id, f.id, patch)} lang={lang} allTableFields={allTableFieldsFlat} reportSections={reportSections ?? sections} />}
+                    : <FieldValueEditor field={f} onChange={patch => updateField(s.id, f.id, patch)} lang={lang} contentLang={contentLang ?? lang} allTableFields={allTableFieldsFlat} reportSections={reportSections ?? sections} />}
                 </div>
               ))}
               <div className="add-field-row">

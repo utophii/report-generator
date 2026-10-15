@@ -114,4 +114,5 @@ export interface AiActionRequest {
   action: 'structure' | 'summarize' | 'improve' | 'translate' | 'suggest';
   text: string;
   targetLanguage?: Language;
+  fieldLabel?: string;
 }

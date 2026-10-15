@@ -56,6 +56,7 @@ export default function ReportEditorPage({ id }: { id: string }) {
         reportSections={report.sections}
         onChange={sections => scheduleSave({ ...report, sections })}
         lang={lang}
+        contentLang={report.language}
       />
     </div>
   );
