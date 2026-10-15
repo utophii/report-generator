@@ -8,12 +8,15 @@ function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1280,
     height: 860,
+    autoHideMenuBar: true,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
       nodeIntegration: false
     }
   });
+
+  if (app.isPackaged && process.platform !== 'darwin') mainWindow.removeMenu();
 
   const devUrl = process.env.VITE_DEV_SERVER_URL || 'http://localhost:5173';
   if (!app.isPackaged) {
