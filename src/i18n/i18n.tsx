@@ -9,7 +9,8 @@ const dict = {
     preview: 'Предпросмотр', exportBtn: 'Экспорт', backToEdit: 'Назад к редактированию', theme: 'Тема',
     addSection: 'Добавить раздел', addField: 'Добавить поле', title: 'Заголовок', period: 'Период',
     author: 'Автор', language: 'Язык содержимого', required: 'Обязательное', cancel: 'Отмена', apply: 'Применить',
-    confirmDeleteTemplate: 'Удалить шаблон без возможности восстановления?', confirmDeleteReport: 'Удалить отчёт без возможности восстановления?'
+    confirmDeleteTemplate: 'Удалить шаблон без возможности восстановления?', confirmDeleteReport: 'Удалить отчёт без возможности восстановления?',
+    createFromPrevious: 'Новый отчёт на основе этого', nextReport: 'Следующий'
   },
   en: {
     newReport: 'New report', recent: 'Recent reports', templates: 'Templates', settings: 'Settings',
@@ -19,7 +20,8 @@ const dict = {
     preview: 'Preview', exportBtn: 'Export', backToEdit: 'Back to editing', theme: 'Theme',
     addSection: 'Add section', addField: 'Add field', title: 'Title', period: 'Period',
     author: 'Author', language: 'Content language', required: 'Required', cancel: 'Cancel', apply: 'Apply',
-    confirmDeleteTemplate: 'Delete this template permanently?', confirmDeleteReport: 'Delete this report permanently?'
+    confirmDeleteTemplate: 'Delete this template permanently?', confirmDeleteReport: 'Delete this report permanently?',
+    createFromPrevious: 'New report based on this one', nextReport: 'Next'
   }
 } as const;
 

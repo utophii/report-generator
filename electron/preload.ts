@@ -12,7 +12,8 @@ const api = {
     get: (id: string) => ipcRenderer.invoke('reports:get', id),
     save: (r: any) => ipcRenderer.invoke('reports:save', r),
     delete: (id: string) => ipcRenderer.invoke('reports:delete', id),
-    createFromTemplate: (payload: any) => ipcRenderer.invoke('reports:createFromTemplate', payload)
+    createFromTemplate: (payload: any) => ipcRenderer.invoke('reports:createFromTemplate', payload),
+    createFromPrevious: (req: any) => ipcRenderer.invoke('reports:createFromPrevious', req)
   },
   settings: {
     get: () => ipcRenderer.invoke('settings:get'),

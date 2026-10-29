@@ -6,6 +6,7 @@ import { buildEmptyTemplate, buildStandardTemplate } from '@shared/defaultTempla
 import { useAppStore } from '../store/store';
 import { t } from '../i18n/i18n';
 import ThemeToggle from '../components/ThemeToggle';
+import CopyReportDialog from '../components/CopyReportDialog';
 
 export default function HomePage() {
   const { navigate } = useContext(RouteContext);
@@ -15,6 +16,7 @@ export default function HomePage() {
   const [query, setQuery] = useState('');
   const [pickerOpen, setPickerOpen] = useState(false);
   const [templates, setTemplates] = useState<Template[]>([]);
+  const [copySource, setCopySource] = useState<Report | null>(null);
 
   useEffect(() => { api.reports.list().then(setReports); }, []);
 
@@ -55,12 +57,19 @@ export default function HomePage() {
       <div className="report-list">
         {filtered.map(r => (
           <div key={r.id} className="report-card" onClick={() => navigate({ name: 'reportEditor', id: r.id })}>
+            <button className="report-card-action" title={t('createFromPrevious', lang)}
+              onClick={e => { e.stopPropagation(); setCopySource(r); }}>+ {t('nextReport', lang)}</button>
             <div className="report-title">{r.title || '(без названия)'}</div>
             <div className="report-meta">{r.period} · {new Date(r.updatedAt).toLocaleString()}</div>
           </div>
         ))}
         {filtered.length === 0 && <div className="empty">Пока нет отчётов</div>}
       </div>
+
+      {copySource && (
+        <CopyReportDialog report={copySource} lang={lang} onClose={() => setCopySource(null)}
+          onCreated={r => navigate({ name: 'reportEditor', id: r.id })} />
+      )}
 
       {pickerOpen && (
         <div className="modal-overlay" onClick={() => setPickerOpen(false)}>

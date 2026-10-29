@@ -5,6 +5,7 @@ import { Report } from '@shared/types';
 import { useAppStore } from '../store/store';
 import { t } from '../i18n/i18n';
 import SectionList from '../components/SectionList';
+import CopyReportDialog from '../components/CopyReportDialog';
 
 export default function ReportEditorPage({ id }: { id: string }) {
   const { navigate } = useContext(RouteContext);
@@ -13,6 +14,7 @@ export default function ReportEditorPage({ id }: { id: string }) {
   const [report, setReport] = useState<Report | null>(null);
   const [status, setStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const timer = useRef<any>(null);
+  const [copyOpen, setCopyOpen] = useState(false);
 
   useEffect(() => { api.reports.get(id).then(setReport); }, [id]);
 
@@ -24,6 +26,17 @@ export default function ReportEditorPage({ id }: { id: string }) {
       try { await api.reports.save(next); setStatus('saved'); }
       catch { setStatus('error'); }
     }, 1200);
+  }
+
+  async function openCopyDialog() {
+    if (!report) return;
+    if (timer.current) {
+      clearTimeout(timer.current);
+      timer.current = null;
+      try { await api.reports.save(report); setStatus('saved'); }
+      catch { setStatus('error'); return; }
+    }
+    setCopyOpen(true);
   }
 
   if (!report) return <div className="loading">…</div>;
@@ -47,6 +60,7 @@ export default function ReportEditorPage({ id }: { id: string }) {
         </select>
         <span className="save-status">{statusText}</span>
         <div className="spacer" />
+        <button onClick={openCopyDialog}>+ {t('createFromPrevious', lang)}</button>
         <button className="primary" onClick={() => navigate({ name: 'preview', id: report.id })}>{t('preview', lang)}</button>
       </header>
 
@@ -58,6 +72,11 @@ export default function ReportEditorPage({ id }: { id: string }) {
         lang={lang}
         contentLang={report.language}
       />
+
+      {copyOpen && (
+        <CopyReportDialog report={report} lang={lang} onClose={() => setCopyOpen(false)}
+          onCreated={r => { setCopyOpen(false); navigate({ name: 'reportEditor', id: r.id }); }} />
+      )}
     </div>
   );
 }

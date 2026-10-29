@@ -1,7 +1,7 @@
 import { v4 as uuid } from 'uuid';
 import { Section, Field, FieldType, Template, Language } from './types';
 
-function defaultValueFor(type: FieldType): Field['value'] {
+export function defaultValueFor(type: FieldType): Field['value'] {
   switch (type) {
     case 'list': return [];
     case 'number': return null;

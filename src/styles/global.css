@@ -301,6 +301,7 @@ input[type="checkbox"] { width: 15px; height: 15px; accent-color: var(--accent);
   font-weight: 600;
   font-size: 14px;
   margin-bottom: 4px;
+  padding-right: 84px;
 }
 
 .report-meta {
@@ -734,3 +735,45 @@ figcaption { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
   gap: var(--space-2);
 }
 .ai-btn { font-size: 12px; padding: 4px 10px; }
+
+.copy-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+.copy-form label { flex-direction: column; align-items: stretch; gap: 4px; }
+
+.copy-tree-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-1);
+}
+.copy-tree {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  margin-top: var(--space-2);
+  max-height: 45vh;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.copy-tree-section { font-weight: 600; }
+.copy-tree-field { padding-left: 22px; margin-top: 4px; }
+.copy-tree-field.empty-field { color: var(--text-muted); }
+
+.report-card { position: relative; }
+.report-card-action {
+  position: absolute;
+  top: var(--space-2);
+  right: var(--space-2);
+  font-size: 12px;
+  padding: 2px 8px;
+  opacity: 0;
+  transition: opacity .15s ease;
+}
+.report-card:hover .report-card-action,
+.report-card-action:focus-visible { opacity: 1; }

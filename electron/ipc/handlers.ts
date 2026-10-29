@@ -3,7 +3,8 @@ import fs from 'fs';
 import path from 'path';
 import { v4 as uuid } from 'uuid';
 import * as DB from '../db/database';
-import { Template, Report, AppSettings, AiActionRequest } from '../../shared/types';
+import { Template, Report, AppSettings, AiActionRequest, CreateFromPreviousRequest } from '../../shared/types';
+import { buildReportFromPrevious, cloneSectionsWithNewIds } from '../../shared/reportCopy';
 import { buildDefaultBaseName, resolveNonConflictingPath, sanitizeFileName } from '../../shared/fileNaming';
 import { exportReportToPdf } from '../export/pdfExport';
 import { exportReportToDocx } from '../export/docxExport';
@@ -33,11 +34,8 @@ export function registerIpcHandlers() {
   ipcMain.handle('reports:delete', (_e, id: string) => { DB.deleteReport(id); return true; });
   ipcMain.handle('reports:createFromTemplate', (_e, payload: { template: Template | null; title: string; language: 'ru' | 'en' }) => {
     const now = new Date().toISOString();
-    const cloneSections = payload.template ? JSON.parse(JSON.stringify(payload.template.sections)) : [];
     // независимая копия: новые id, чтобы редактирование черновика не влияло на шаблон
-    const remap = (sections: any[]) => sections.map((s: any) => ({
-      ...s, id: uuid(), fields: s.fields.map((f: any) => ({ ...f, id: uuid() }))
-    }));
+    const { sections } = cloneSectionsWithNewIds(payload.template?.sections ?? [], uuid);
     const report: Report = {
       id: uuid(),
       templateId: payload.template?.id ?? null,
@@ -47,9 +45,16 @@ export function registerIpcHandlers() {
       language: payload.language,
       theme: payload.template?.theme ?? 'modern',
       status: 'draft',
-      sections: remap(cloneSections),
+      sections,
       createdAt: now, updatedAt: now
     };
+    DB.upsertReport(report);
+    return report;
+  });
+  ipcMain.handle('reports:createFromPrevious', (_e, req: CreateFromPreviousRequest) => {
+    const src = DB.getReportById(req.sourceId);
+    if (!src) throw new Error(DB.getSettings().uiLanguage === 'ru' ? 'Исходный отчёт не найден' : 'Source report not found');
+    const report = buildReportFromPrevious(src, req, uuid);
     DB.upsertReport(report);
     return report;
   });

@@ -44,7 +44,8 @@ export interface Field {
   required: boolean;
   order: number;
   hint?: string;
-  options?: string[]; // для select
+  options?: string[];
+  carryOver?: boolean;
   value: FieldValue;
 }
 
@@ -88,6 +89,13 @@ export interface Report {
   sections: Section[];
   createdAt: string;
   updatedAt: string;
+}
+
+export interface CreateFromPreviousRequest {
+  sourceId: string;
+  title: string;
+  period: string;
+  keepFieldIds: string[];
 }
 
 export interface ExportRecord {
