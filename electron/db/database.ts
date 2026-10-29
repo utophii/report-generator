@@ -79,7 +79,11 @@ export function upsertReport(r: Report) {
   });
 }
 export function deleteReport(id: string) {
-  getDb().prepare('DELETE FROM reports WHERE id = ?').run(id);
+  const db = getDb();
+  db.transaction(() => {
+    db.prepare('DELETE FROM exports WHERE report_id = ?').run(id);
+    db.prepare('DELETE FROM reports WHERE id = ?').run(id);
+  })();
 }
 
 // ---------- Exports ----------

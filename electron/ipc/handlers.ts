@@ -3,7 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import { v4 as uuid } from 'uuid';
 import * as DB from '../db/database';
-import { Template, Report, AppSettings, AiActionRequest, CreateFromPreviousRequest } from '../../shared/types';
+import { Template, Report, AppSettings, AiActionRequest, CreateFromPreviousRequest, Section, ImageValue, ChartValue } from '../../shared/types';
 import { buildReportFromPrevious, cloneSectionsWithNewIds } from '../../shared/reportCopy';
 import { buildDefaultBaseName, resolveNonConflictingPath, sanitizeFileName } from '../../shared/fileNaming';
 import { exportReportToPdf } from '../export/pdfExport';
@@ -20,6 +20,27 @@ function logError(context: string, err: unknown) {
   console.error(line);
 }
 
+function collectImagePaths(sections: Section[]): string[] {
+  return sections.flatMap(s => s.fields.map(f =>
+    f.type === 'image' ? (f.value as ImageValue | null)?.path
+      : f.type === 'chart' ? (f.value as ChartValue | null)?.imagePath
+        : null
+  )).filter((p): p is string => !!p);
+}
+
+function removeOrphanImages(candidates: string[]) {
+  if (candidates.length === 0) return;
+  const imagesDir = path.resolve(getImagesDir());
+  const used = new Set([
+    ...DB.listReports().flatMap(r => collectImagePaths(r.sections)),
+    ...DB.listTemplates().flatMap(t => collectImagePaths(t.sections))
+  ].map(p => path.resolve(p)));
+  for (const p of new Set(candidates.map(c => path.resolve(c)))) {
+    if (used.has(p) || path.dirname(p) !== imagesDir) continue;
+    try { fs.unlinkSync(p); } catch (err) { logError('images:cleanup', err); }
+  }
+}
+
 export function registerIpcHandlers() {
   DB.initDb();
 
@@ -31,10 +52,14 @@ export function registerIpcHandlers() {
   ipcMain.handle('reports:list', () => DB.listReports());
   ipcMain.handle('reports:get', (_e, id: string) => DB.getReportById(id));
   ipcMain.handle('reports:save', (_e, r: Report) => { r.updatedAt = new Date().toISOString(); DB.upsertReport(r); return r; });
-  ipcMain.handle('reports:delete', (_e, id: string) => { DB.deleteReport(id); return true; });
+  ipcMain.handle('reports:delete', (_e, id: string) => {
+    const report = DB.getReportById(id);
+    DB.deleteReport(id);
+    if (report) removeOrphanImages(collectImagePaths(report.sections));
+    return true;
+  });
   ipcMain.handle('reports:createFromTemplate', (_e, payload: { template: Template | null; title: string; language: 'ru' | 'en' }) => {
     const now = new Date().toISOString();
-    // независимая копия: новые id, чтобы редактирование черновика не влияло на шаблон
     const { sections } = cloneSectionsWithNewIds(payload.template?.sections ?? [], uuid);
     const report: Report = {
       id: uuid(),

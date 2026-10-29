@@ -39,6 +39,13 @@ export default function ReportEditorPage({ id }: { id: string }) {
     setCopyOpen(true);
   }
 
+  async function removeReport() {
+    if (!report || !confirm(`${t('confirmDeleteReport', lang)}\n\n${report.title}`)) return;
+    if (timer.current) { clearTimeout(timer.current); timer.current = null; }
+    await api.reports.delete(report.id);
+    navigate({ name: 'home' });
+  }
+
   if (!report) return <div className="loading">…</div>;
 
   const statusText = { idle: '', saving: t('saving', lang), saved: t('saved', lang), error: lang === 'ru' ? 'Ошибка сохранения' : 'Save failed' }[status];
@@ -60,6 +67,7 @@ export default function ReportEditorPage({ id }: { id: string }) {
         </select>
         <span className="save-status">{statusText}</span>
         <div className="spacer" />
+        <button className="danger" onClick={removeReport}>{t('delete', lang)}</button>
         <button onClick={openCopyDialog}>+ {t('createFromPrevious', lang)}</button>
         <button className="primary" onClick={() => navigate({ name: 'preview', id: report.id })}>{t('preview', lang)}</button>
       </header>

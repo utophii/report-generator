@@ -31,6 +31,12 @@ export default function HomePage() {
     navigate({ name: 'reportEditor', id: report.id });
   }
 
+  async function removeReport(r: Report) {
+    if (!confirm(`${t('confirmDeleteReport', lang)}\n\n${r.title}`)) return;
+    await api.reports.delete(r.id);
+    setReports(prev => prev.filter(x => x.id !== r.id));
+  }
+
   const filtered = reports.filter(r => r.title.toLowerCase().includes(query.toLowerCase()));
 
   return (
@@ -57,8 +63,12 @@ export default function HomePage() {
       <div className="report-list">
         {filtered.map(r => (
           <div key={r.id} className="report-card" onClick={() => navigate({ name: 'reportEditor', id: r.id })}>
-            <button className="report-card-action" title={t('createFromPrevious', lang)}
-              onClick={e => { e.stopPropagation(); setCopySource(r); }}>+ {t('nextReport', lang)}</button>
+            <div className="report-card-actions">
+              <button title={t('createFromPrevious', lang)}
+                onClick={e => { e.stopPropagation(); setCopySource(r); }}>+ {t('nextReport', lang)}</button>
+              <button className="danger" title={t('delete', lang)}
+                onClick={e => { e.stopPropagation(); removeReport(r); }}>✕</button>
+            </div>
             <div className="report-title">{r.title || '(без названия)'}</div>
             <div className="report-meta">{r.period} · {new Date(r.updatedAt).toLocaleString()}</div>
           </div>
