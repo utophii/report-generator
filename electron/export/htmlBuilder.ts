@@ -1,4 +1,6 @@
 import { Report, Section, Field, TableValue, ChartValue, ImageValue } from '../../shared/types';
+import { sectionHasContent } from '../../shared/reportContent';
+import { ChartImages, chartImageDataUrl } from './chartImages';
 import { THEMES } from '../../shared/themes';
 import fs from 'fs';
 
@@ -29,7 +31,7 @@ function imgDataUrl(absPath: string): string | null {
   } catch { return null; }
 }
 
-function renderField(f: Field): string {
+function renderField(f: Field, chartImages: ChartImages): string {
   switch (f.type) {
     case 'text': return f.value ? `<p><strong>${esc(f.label)}:</strong> ${esc(String(f.value))}</p>` : '';
     case 'number': return f.value !== null && f.value !== undefined ? `<p><strong>${esc(f.label)}:</strong> ${esc(String(f.value))}</p>` : '';
@@ -61,8 +63,7 @@ function renderField(f: Field): string {
     }
     case 'chart': {
       const c = f.value as ChartValue;
-      if (!c?.imagePath) return '';
-      const data = imgDataUrl(c.imagePath);
+      const data = chartImageDataUrl(chartImages, f.id);
       if (!data) return '';
       return `<figure><img src="${data}" style="max-width:100%"/><figcaption>${esc(c.title)}</figcaption></figure>`;
     }
@@ -70,28 +71,19 @@ function renderField(f: Field): string {
   return '';
 }
 
-function sectionHasContent(s: Section): boolean {
-  return s.fields.some(f => {
-    if (f.type === 'list') return ((f.value as string[]) || []).length > 0;
-    if (f.type === 'table') return ((f.value as TableValue)?.rows?.length || 0) > 0;
-    if (f.type === 'image') return !!(f.value as ImageValue)?.path;
-    if (f.type === 'chart') return !!(f.value as ChartValue)?.imagePath;
-    return f.value !== null && f.value !== undefined && String(f.value).trim() !== '';
-  });
-}
-
-function renderSection(s: Section, depth = 0): string {
-  if (!s.required && !sectionHasContent(s)) return '';
+function renderSection(s: Section, report: Report, chartImages: ChartImages): string {
+  if (!s.required && !sectionHasContent(s, report.sections)) return '';
   const tag = `h${Math.min(6, s.level + 1)}`;
-  const body = s.fields.sort((a, b) => a.order - b.order).map(renderField).join('');
+  const body = [...s.fields].sort((a, b) => a.order - b.order).map(f => renderField(f, chartImages)).join('');
   return `<section class="rg-section"><${tag}>${esc(s.title)}</${tag}>${s.hint ? `<p class="rg-hint">${esc(s.hint)}</p>` : ''}${body}</section>`;
 }
 
-export function buildReportHtml(report: Report): string {
+export function buildReportHtml(report: Report, chartImages: ChartImages): string {
   const theme = THEMES[report.theme];
-  const toc = report.sections.filter(s => s.showInToc && (s.required || sectionHasContent(s)))
+  const sorted = [...report.sections].sort((a, b) => a.order - b.order);
+  const toc = sorted.filter(s => s.showInToc && (s.required || sectionHasContent(s, report.sections)))
     .map(s => `<li>${esc(s.title)}</li>`).join('');
-  const sectionsHtml = [...report.sections].sort((a, b) => a.order - b.order).map(s => renderSection(s)).join('');
+  const sectionsHtml = sorted.map(s => renderSection(s, report, chartImages)).join('');
 
   return `<!doctype html><html><head><meta charset="utf-8"/><style>
     body { font-family: ${theme.fontFamily}; color: ${theme.textColor}; margin: 40px; }

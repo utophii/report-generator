@@ -1,16 +1,5 @@
-import { ChartValue, Field, ImageValue, Report, Section, TableValue } from './types';
+import { ChartValue, Field, Report, Section, TableValue } from './types';
 import { defaultValueFor } from './defaultTemplates';
-
-export function fieldHasContent(f: Field): boolean {
-  const v = f.value;
-  switch (f.type) {
-    case 'list': return Array.isArray(v) && v.some(s => s.trim());
-    case 'table': return ((v as TableValue | null)?.rows?.length ?? 0) > 0;
-    case 'image': return !!(v as ImageValue | null)?.path;
-    case 'chart': return !!(v as ChartValue | null)?.imagePath;
-    default: return v !== null && v !== undefined && String(v).trim() !== '';
-  }
-}
 
 function clearedValue(f: Field): Field['value'] {
   switch (f.type) {
@@ -18,10 +7,8 @@ function clearedValue(f: Field): Field['value'] {
       const t = f.value as TableValue | null;
       return { columns: t?.columns ?? [], rows: [] };
     }
-    case 'chart': {
-      const c = f.value as ChartValue | null;
-      return c ? { ...c, imagePath: null } : defaultValueFor('chart');
-    }
+    case 'chart':
+      return f.value ?? defaultValueFor('chart');
     default:
       return defaultValueFor(f.type);
   }
@@ -41,7 +28,9 @@ export function cloneSectionsWithNewIds(sections: Section[], genId: () => string
   for (const s of copy) {
     for (const f of s.fields) {
       const c = f.type === 'chart' ? (f.value as ChartValue | null) : null;
-      if (c?.sourceFieldId) c.sourceFieldId = fieldIdMap.get(c.sourceFieldId) ?? null;
+      if (!c) continue;
+      delete c.imagePath;
+      if (c.sourceFieldId) c.sourceFieldId = fieldIdMap.get(c.sourceFieldId) ?? null;
     }
   }
   return { sections: copy, fieldIdMap };
@@ -62,11 +51,6 @@ export function buildReportFromPrevious(
       f.carryOver = keptNewIds.has(f.id);
       if (!f.carryOver) f.value = clearedValue(f);
     }
-  }
-  const allFields = sections.flatMap(s => s.fields);
-  for (const f of allFields) {
-    const c = f.type === 'chart' ? (f.value as ChartValue | null) : null;
-    if (c?.imagePath && c.sourceFieldId && !keptNewIds.has(c.sourceFieldId)) c.imagePath = null;
   }
 
   return {

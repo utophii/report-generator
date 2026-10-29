@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Language, Report, Section } from '@shared/types';
 import { nextPeriod } from '@shared/periodShift';
-import { fieldHasContent, titleForPeriod } from '@shared/reportCopy';
+import { titleForPeriod } from '@shared/reportCopy';
+import { fieldHasContent } from '@shared/reportContent';
 import { api } from '../api/bridge';
 import { t } from '../i18n/i18n';
 
@@ -95,11 +96,11 @@ export default function CopyReportDialog({ report, lang, onClose, onCreated }: {
             <div key={s.id}>
               <SectionCheckbox section={s} keep={keep} onToggle={toggle} />
               {[...s.fields].sort((a, b) => a.order - b.order).map(f => (
-                <label key={f.id} className={`copy-tree-field${fieldHasContent(f) ? '' : ' empty-field'}`}>
+                <label key={f.id} className={`copy-tree-field${fieldHasContent(f, report.sections) ? '' : ' empty-field'}`}>
                   <input type="checkbox" checked={keep.has(f.id)} onChange={e => toggle([f.id], e.target.checked)} />
                   {f.label || '—'}
                   <span className="field-type-badge">{f.type}</span>
-                  {!fieldHasContent(f) && <span className="hint">{ru ? '(пусто)' : '(empty)'}</span>}
+                  {!fieldHasContent(f, report.sections) && <span className="hint">{ru ? '(пусто)' : '(empty)'}</span>}
                 </label>
               ))}
             </div>

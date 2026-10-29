@@ -2,9 +2,10 @@ import { BrowserWindow } from 'electron';
 import fs from 'fs';
 import { Report } from '../../shared/types';
 import { buildReportHtml } from './htmlBuilder';
+import { ChartImages } from './chartImages';
 
-export async function exportReportToPdf(report: Report, filePath: string): Promise<void> {
-  const html = buildReportHtml(report);
+export async function exportReportToPdf(report: Report, filePath: string, chartImages: ChartImages): Promise<void> {
+  const html = buildReportHtml(report, chartImages);
   const win = new BrowserWindow({ show: false, webPreferences: { offscreen: true } });
   try {
     await win.loadURL('data:text/html;charset=utf-8,' + encodeURIComponent(html));

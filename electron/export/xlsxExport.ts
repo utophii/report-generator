@@ -1,8 +1,8 @@
 import ExcelJS from 'exceljs';
-import fs from 'fs';
 import { Report, Section, Field, TableValue, ChartValue } from '../../shared/types';
+import { ChartImages, chartImageBuffer } from './chartImages';
 
-export async function exportReportToXlsx(report: Report, filePath: string): Promise<void> {
+export async function exportReportToXlsx(report: Report, filePath: string, chartImages: ChartImages): Promise<void> {
   const wb = new ExcelJS.Workbook();
 
   const summary = wb.addWorksheet('Summary');
@@ -48,12 +48,14 @@ export async function exportReportToXlsx(report: Report, filePath: string): Prom
     t.columns.forEach((c, idx) => { ws.getColumn(idx + 1).width = 20; });
   }
 
+  let chartIndex = 1;
   for (const { field } of chartFields) {
     const c = field.value as ChartValue;
-    if (c?.imagePath && fs.existsSync(c.imagePath)) {
-      const ws = wb.addWorksheet(`Chart - ${c.title}`.slice(0, 31).replace(/[\[\]\*\/\\\?:]/g, '_'));
-      const imgId = wb.addImage({ filename: c.imagePath, extension: 'png' });
-      ws.addImage(imgId, 'A1:H15');
+    const png = chartImageBuffer(chartImages, field.id);
+    if (png) {
+      const ws = wb.addWorksheet(`Chart ${chartIndex++} - ${c.title}`.slice(0, 31).replace(/[\[\]\*\/\\\?:]/g, '_'));
+      const imgId = wb.addImage({ buffer: png as any, extension: 'png' });
+      ws.addImage(imgId, { tl: { col: 0, row: 0 }, ext: { width: 840, height: 490 } });
     }
   }
 

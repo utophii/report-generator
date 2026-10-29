@@ -1,8 +1,8 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useMemo } from 'react';
 import { Chart as ChartJS, registerables } from 'chart.js';
 import { Chart } from 'react-chartjs-2';
-import { ChartValue, Language, Section, TableValue } from '@shared/types';
-import { api } from '../api/bridge';
+import { ChartValue, Language, Section } from '@shared/types';
+import { buildChartData, chartOptions, chartProblem, findChartTable } from '@shared/chartData';
 
 ChartJS.register(...registerables);
 
@@ -13,58 +13,18 @@ interface Props {
   lang: Language;
 }
 
-function findTableField(sections: Section[], fieldId: string | null) {
-  if (!fieldId) return null;
-  for (const s of sections) {
-    const f = s.fields.find(f => f.id === fieldId && f.type === 'table');
-    if (f) return { section: s, table: f.value as TableValue };
-  }
-  return null;
-}
-
 export default function ChartEditor({ value, onChange, reportSections, lang }: Props) {
   const ru = lang === 'ru';
-  const canvasRef = useRef<ChartJS>(null);
   const v = value ?? { sourceFieldId: null, chartType: 'bar', title: '', categoryColumn: null, valueColumns: [], showLegend: true };
-  const [error, setError] = useState<string | null>(null);
 
   const allTableFields = useMemo(() =>
     reportSections.flatMap(s => s.fields.filter(f => f.type === 'table').map(f => ({ id: f.id, label: `${s.title} / ${f.label}` }))),
     [reportSections]);
 
-  const found = findTableField(reportSections, v.sourceFieldId);
-  const table = found?.table;
+  const table = findChartTable(reportSections, v.sourceFieldId);
   const numericCols = table?.columns.filter(c => c.numeric) ?? [];
-
-  const chartData = useMemo(() => {
-    if (!table || !v.categoryColumn || v.valueColumns.length === 0) return null;
-    const labels = table.rows.map(r => String(r[v.categoryColumn!] ?? ''));
-    const datasets = v.valueColumns.map((key, idx) => ({
-      label: table.columns.find(c => c.key === key)?.label ?? key,
-      data: table.rows.map(r => Number(r[key]) || 0),
-      backgroundColor: `hsl(${(idx * 67) % 360}, 65%, 55%)`
-    }));
-    return { labels, datasets };
-  }, [table, v.categoryColumn, v.valueColumns]);
-
-  function canBuild() {
-    if (!table || table.rows.length === 0) return ru ? 'Нет данных: выберите таблицу с заполненными строками.' : 'No data: choose a table with filled rows.';
-    if (numericCols.length === 0) return ru ? 'В таблице нет числовых столбцов.' : 'The table has no numeric columns.';
-    if (!v.categoryColumn) return ru ? 'Выберите столбец категорий (ось X).' : 'Choose a category column (X axis).';
-    if (v.valueColumns.length === 0) return ru ? 'Выберите хотя бы один числовой столбец значений.' : 'Choose at least one numeric value column.';
-    return null;
-  }
-
-  async function saveImage() {
-    setError(null);
-    const problem = canBuild();
-    if (problem) { setError(problem); return; }
-    const chartInstance = canvasRef.current;
-    if (!chartInstance) return;
-    const dataUrl = chartInstance.toBase64Image('image/png', 1);
-    const path = await api.images.saveDataUrl(dataUrl);
-    onChange({ ...v, imagePath: path });
-  }
+  const chartData = useMemo(() => buildChartData(v, reportSections), [v, reportSections]);
+  const problem = chartProblem(v, table, lang);
 
   return (
     <div className="chart-editor">
@@ -99,16 +59,11 @@ export default function ChartEditor({ value, onChange, reportSections, lang }: P
       <input placeholder={ru ? 'Заголовок диаграммы' : 'Chart title'} value={v.title} onChange={e => onChange({ ...v, title: e.target.value })} />
       <label><input type="checkbox" checked={v.showLegend} onChange={e => onChange({ ...v, showLegend: e.target.checked })} /> {ru ? 'Легенда' : 'Legend'}</label>
 
-      {error && <div className="error-banner">{error}</div>}
-
-      {chartData && (
+      {chartData ? (
         <div style={{ maxWidth: 480 }}>
-          <Chart ref={canvasRef as any} type={v.chartType} data={chartData}
-            options={{ plugins: { legend: { display: v.showLegend }, title: { display: !!v.title, text: v.title } } }} />
+          <Chart type={v.chartType} data={chartData as any} options={chartOptions(v)} />
         </div>
-      )}
-      <button onClick={saveImage}>{ru ? 'Сохранить изображение диаграммы (для экспорта)' : 'Save chart image (for export)'}</button>
-      {v.imagePath && <div className="hint">{ru ? 'Изображение сохранено ✓' : 'Image saved ✓'}</div>}
+      ) : problem && <div className="hint">{problem}</div>}
     </div>
   );
 }

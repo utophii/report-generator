@@ -5,6 +5,7 @@ import { v4 as uuid } from 'uuid';
 import * as DB from '../db/database';
 import { Template, Report, AppSettings, AiActionRequest, CreateFromPreviousRequest, Section, ImageValue, ChartValue } from '../../shared/types';
 import { buildReportFromPrevious, cloneSectionsWithNewIds } from '../../shared/reportCopy';
+import { ChartImages } from '../export/chartImages';
 import { buildDefaultBaseName, resolveNonConflictingPath, sanitizeFileName } from '../../shared/fileNaming';
 import { exportReportToPdf } from '../export/pdfExport';
 import { exportReportToDocx } from '../export/docxExport';
@@ -160,7 +161,7 @@ export function registerIpcHandlers() {
     }
   });
 
-  async function doExport(report: Report, format: 'pdf' | 'docx' | 'xlsx', win: BrowserWindow | null) {
+  async function doExport(report: Report, format: 'pdf' | 'docx' | 'xlsx', chartImages: ChartImages, win: BrowserWindow | null) {
     const settings = DB.getSettings();
     const baseDir = settings.defaultExportDir && fs.existsSync(settings.defaultExportDir)
       ? settings.defaultExportDir
@@ -176,9 +177,9 @@ export function registerIpcHandlers() {
 
     const filePath = res.filePath;
     try {
-      if (format === 'pdf') await exportReportToPdf(report, filePath);
-      if (format === 'docx') await exportReportToDocx(report, filePath);
-      if (format === 'xlsx') await exportReportToXlsx(report, filePath);
+      if (format === 'pdf') await exportReportToPdf(report, filePath, chartImages);
+      if (format === 'docx') await exportReportToDocx(report, filePath, chartImages);
+      if (format === 'xlsx') await exportReportToXlsx(report, filePath, chartImages);
       DB.addExportRecord({ id: uuid(), reportId: report.id, format, filePath, createdAt: new Date().toISOString() });
       return { ok: true, filePath };
     } catch (err) {
@@ -187,9 +188,9 @@ export function registerIpcHandlers() {
     }
   }
 
-  ipcMain.handle('export:run', async (event, payload: { report: Report; format: 'pdf' | 'docx' | 'xlsx' }) => {
+  ipcMain.handle('export:run', async (event, payload: { report: Report; format: 'pdf' | 'docx' | 'xlsx'; chartImages?: ChartImages }) => {
     const win = BrowserWindow.fromWebContents(event.sender);
-    return doExport(payload.report, payload.format, win);
+    return doExport(payload.report, payload.format, payload.chartImages ?? {}, win);
   });
 
   ipcMain.handle('exports:list', (_e, reportId: string) => DB.listExportsForReport(reportId));

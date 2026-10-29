@@ -3,17 +3,9 @@ import {
   Document, Packer, Paragraph, HeadingLevel, Table, TableRow, TableCell,
   TextRun, ImageRun, WidthType
 } from 'docx';
-import { Report, Section, Field, TableValue, ImageValue, ChartValue } from '../../shared/types';
-
-function sectionHasContent(s: Section): boolean {
-  return s.fields.some(f => {
-    if (f.type === 'list') return ((f.value as string[]) || []).length > 0;
-    if (f.type === 'table') return ((f.value as TableValue)?.rows?.length || 0) > 0;
-    if (f.type === 'image') return !!(f.value as ImageValue)?.path;
-    if (f.type === 'chart') return !!(f.value as ChartValue)?.imagePath;
-    return f.value !== null && f.value !== undefined && String(f.value).trim() !== '';
-  });
-}
+import { Report, Field, TableValue, ImageValue, ChartValue } from '../../shared/types';
+import { sectionHasContent } from '../../shared/reportContent';
+import { ChartImages, chartImageBuffer, CHART_ASPECT } from './chartImages';
 
 function headingLevel(level: number) {
   return [HeadingLevel.HEADING_1, HeadingLevel.HEADING_2, HeadingLevel.HEADING_3][Math.min(level, 3) - 1];
@@ -29,7 +21,7 @@ function docxTable(t: TableValue): Table {
   return new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows: [headerRow, ...rows] });
 }
 
-function fieldToDocxNodes(f: Field): (Paragraph | Table)[] {
+function fieldToDocxNodes(f: Field, chartImages: ChartImages): (Paragraph | Table)[] {
   const nodes: (Paragraph | Table)[] = [];
   switch (f.type) {
     case 'text': case 'number': case 'date': case 'select':
@@ -69,9 +61,10 @@ function fieldToDocxNodes(f: Field): (Paragraph | Table)[] {
     }
     case 'chart': {
       const c = f.value as ChartValue;
-      if (c?.imagePath && fs.existsSync(c.imagePath)) {
-        nodes.push(new Paragraph({ text: c.title, heading: HeadingLevel.HEADING_4 }));
-        nodes.push(new Paragraph({ children: [new ImageRun({ data: fs.readFileSync(c.imagePath), transformation: { width: 420, height: 260 } })] }));
+      const png = chartImageBuffer(chartImages, f.id);
+      if (png) {
+        if (c.title) nodes.push(new Paragraph({ text: c.title, heading: HeadingLevel.HEADING_4 }));
+        nodes.push(new Paragraph({ children: [new ImageRun({ data: png, transformation: { width: 560, height: Math.round(560 / CHART_ASPECT) } })] }));
       }
       break;
     }
@@ -79,17 +72,17 @@ function fieldToDocxNodes(f: Field): (Paragraph | Table)[] {
   return nodes;
 }
 
-export async function exportReportToDocx(report: Report, filePath: string): Promise<void> {
+export async function exportReportToDocx(report: Report, filePath: string, chartImages: ChartImages): Promise<void> {
   const children: (Paragraph | Table)[] = [];
   children.push(new Paragraph({ text: report.title, heading: HeadingLevel.TITLE }));
   children.push(new Paragraph({ text: `${report.period}${report.author ? ' · ' + report.author : ''}` }));
 
   for (const s of [...report.sections].sort((a, b) => a.order - b.order)) {
-    if (!s.required && !sectionHasContent(s)) continue;
+    if (!s.required && !sectionHasContent(s, report.sections)) continue;
     children.push(new Paragraph({ text: s.title, heading: headingLevel(s.level) }));
     if (s.hint) children.push(new Paragraph({ text: s.hint, italics: true } as any));
     for (const f of [...s.fields].sort((a, b) => a.order - b.order)) {
-      children.push(...fieldToDocxNodes(f));
+      children.push(...fieldToDocxNodes(f, chartImages));
     }
   }
 

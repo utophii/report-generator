@@ -39,7 +39,7 @@ const api = {
     loadFullSheet: (filePath: string, sheetName?: string) => ipcRenderer.invoke('import:loadFullSheet', filePath, sheetName)
   },
   exportReport: {
-    run: (report: any, format: 'pdf' | 'docx' | 'xlsx') => ipcRenderer.invoke('export:run', { report, format }),
+    run: (report: any, format: 'pdf' | 'docx' | 'xlsx', chartImages: Record<string, string>) => ipcRenderer.invoke('export:run', { report, format, chartImages }),
     list: (reportId: string) => ipcRenderer.invoke('exports:list', reportId)
   },
   app: {

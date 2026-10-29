@@ -1,22 +1,16 @@
 import React, { useEffect, useState } from 'react';
+import { Chart } from 'react-chartjs-2';
 import { Report, Section, Field, TableValue, ImageValue, ChartValue } from '@shared/types';
 import { THEMES } from '@shared/themes';
+import { buildChartData, chartOptions } from '@shared/chartData';
+import { sectionHasContent } from '@shared/reportContent';
 import { api } from '../api/bridge';
+import '../charts/renderChart';
 
-function sectionHasContent(s: Section) {
-  return s.fields.some(f => {
-    if (f.type === 'list') return ((f.value as string[]) || []).length > 0;
-    if (f.type === 'table') return ((f.value as TableValue)?.rows?.length || 0) > 0;
-    if (f.type === 'image') return !!(f.value as ImageValue)?.path;
-    if (f.type === 'chart') return !!(f.value as ChartValue)?.imagePath;
-    return f.value !== null && f.value !== undefined && String(f.value).trim() !== '';
-  });
-}
-
-function FieldPreview({ f }: { f: Field }) {
+function FieldPreview({ f, sections }: { f: Field; sections: Section[] }) {
   const [imgSrc, setImgSrc] = useState<string | null>(null);
   useEffect(() => {
-    const path = f.type === 'image' ? (f.value as ImageValue)?.path : f.type === 'chart' ? (f.value as ChartValue)?.imagePath : null;
+    const path = f.type === 'image' ? (f.value as ImageValue)?.path : null;
     if (path) api.images.getDataUrl(path).then(setImgSrc); else setImgSrc(null);
   }, [f]);
 
@@ -44,8 +38,12 @@ function FieldPreview({ f }: { f: Field }) {
     }
     case 'image':
       return imgSrc ? <figure><img src={imgSrc} style={{ maxWidth: '100%' }} /><figcaption>{(f.value as ImageValue)?.caption}</figcaption></figure> : null;
-    case 'chart':
-      return imgSrc ? <figure><img src={imgSrc} style={{ maxWidth: '100%' }} /><figcaption>{(f.value as ChartValue)?.title}</figcaption></figure> : null;
+    case 'chart': {
+      const c = f.value as ChartValue;
+      const data = buildChartData(c, sections);
+      if (!data) return null;
+      return <figure className="preview-chart"><Chart type={c.chartType} data={data as any} options={{ ...chartOptions(c), animation: false }} /></figure>;
+    }
     default: return null;
   }
 }
@@ -53,7 +51,7 @@ function FieldPreview({ f }: { f: Field }) {
 export default function ReportView({ report }: { report: Report }) {
   const theme = THEMES[report.theme];
   const sorted = [...report.sections].sort((a, b) => a.order - b.order);
-  const toc = sorted.filter(s => s.showInToc && (s.required || sectionHasContent(s)));
+  const toc = sorted.filter(s => s.showInToc && (s.required || sectionHasContent(s, report.sections)));
 
   return (
     <div className="report-view" style={{ fontFamily: theme.fontFamily, color: theme.textColor }}>
@@ -66,13 +64,13 @@ export default function ReportView({ report }: { report: Report }) {
         <ol>{toc.map(s => <li key={s.id}>{s.title}</li>)}</ol>
       </div>
       {sorted.map(s => {
-        if (!s.required && !sectionHasContent(s)) return null;
+        if (!s.required && !sectionHasContent(s, report.sections)) return null;
         const Tag = (`h${Math.min(4, s.level + 1)}` as unknown) as any;
         return (
           <section key={s.id} className="preview-section">
             <Tag style={{ color: theme.headingColor }}>{s.title}</Tag>
             {s.hint && <p className="preview-hint">{s.hint}</p>}
-            {[...s.fields].sort((a, b) => a.order - b.order).map(f => <FieldPreview key={f.id} f={f} />)}
+            {[...s.fields].sort((a, b) => a.order - b.order).map(f => <FieldPreview key={f.id} f={f} sections={report.sections} />)}
           </section>
         );
       })}

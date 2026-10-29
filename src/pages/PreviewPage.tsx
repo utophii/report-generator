@@ -6,6 +6,7 @@ import { THEMES } from '@shared/themes';
 import { useAppStore } from '../store/store';
 import { t } from '../i18n/i18n';
 import ReportView from '../components/ReportView';
+import { renderReportCharts } from '../charts/renderChart';
 
 export default function PreviewPage({ id }: { id: string }) {
   const { navigate } = useContext(RouteContext);
@@ -26,7 +27,7 @@ export default function PreviewPage({ id }: { id: string }) {
 
   async function doExport(format: 'pdf' | 'docx' | 'xlsx') {
     setBusy(format); setMessage(null);
-    const res = await api.exportReport.run(report!, format);
+    const res = await api.exportReport.run(report!, format, renderReportCharts(report!));
     setBusy(null);
     if (res.cancelled) return;
     if (!res.ok) { setMessage(`${lang === 'ru' ? 'Ошибка экспорта' : 'Export failed'}: ${res.error}`); return; }
